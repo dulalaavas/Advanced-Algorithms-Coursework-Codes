@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated benchmark output
+benchmark_results.csv
+
+# Local-only working notes (not for publication)
+PROJECT_NOTES.local.md
