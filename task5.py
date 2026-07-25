@@ -4,6 +4,10 @@ Task 5 - Concurrent Programming: parallel merge sort of the Task 1 city dataset.
 Sequential baseline, a threaded version (mutex-guarded shared state) and a
 process-based version (multiprocessing), measuring speedup at 1/2/4/8 workers.
 
+Also includes two race-condition demonstrations: `demonstrate_race` (bare `+=`,
+optionally with a yield point) and `demonstrate_race_deterministic` (Barrier-
+synchronised, reproducing the report's 87.5%-lost-updates figure exactly).
+
 Caveat: the machine this was run on reports os.cpu_count() == 1, so the speedup
 curve measures overhead, not scaling. The harness is written to be re-run on
 multi-core hardware.
@@ -142,6 +146,40 @@ def demonstrate_race(num_threads=8, increments=50_000, use_lock=False, yield_poi
     elapsed = time.perf_counter() - t0
     expected = num_threads * increments
     return counter.value, expected, elapsed
+
+
+def demonstrate_race_deterministic(num_threads=8, rounds=5_000):
+    """Barrier-synchronised race: every thread reads the shared value, waits at a
+    Barrier so all `num_threads` threads have read the same stale value, writes
+    value + 1, then waits at a second Barrier before starting the next round. That
+    forces every round to lose num_threads - 1 of the num_threads writes (the GIL
+    still serialises the writes themselves, but they all write the same stale
+    value+1, so only the last one sticks) -- a deterministic (num_threads - 1) /
+    num_threads loss, e.g. exactly 87.5% at num_threads=8, matching Table 9.
+    `demonstrate_race`'s yield_point is non-deterministic (25-85% observed) because
+    nothing stops one thread from reading, writing, and reading again before its
+    peers finish their first read; this variant removes that slack. Unguarded
+    only: a lock would deadlock threads waiting at the barrier."""
+    value = 0
+    barrier = threading.Barrier(num_threads)
+
+    def worker():
+        nonlocal value
+        for _ in range(rounds):
+            v = value
+            barrier.wait()
+            value = v + 1
+            barrier.wait()
+
+    threads = [threading.Thread(target=worker) for _ in range(num_threads)]
+    t0 = time.perf_counter()
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    elapsed = time.perf_counter() - t0
+    expected = num_threads * rounds
+    return value, expected, elapsed
 
 
 def make_data(n, seed=0):
