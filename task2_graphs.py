@@ -38,4 +38,20 @@ class Graph:
                     return "Graph contains negative weight cycle"
         return distances
 
-# --- TODO: Prim's Algorithm not yet implemented ---
+    def prim(self, src=0):
+        visited = [False] * self.V
+        min_heap = [(0, src, -1)]
+        mst_edges = []
+        total_cost = 0
+        while min_heap:
+            weight, u, parent = heapq.heappop(min_heap)
+            if visited[u]:
+                continue
+            visited[u] = True
+            total_cost += weight
+            if parent != -1:
+                mst_edges.append((parent, u, weight))
+            for v, w in self.graph[u]:
+                if not visited[v]:
+                    heapq.heappush(min_heap, (w, v, u))
+        return mst_edges, total_cost
