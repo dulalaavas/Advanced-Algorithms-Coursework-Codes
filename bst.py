@@ -1,6 +1,5 @@
 from typing import Optional
 
-
 class BSTNode:
     def __init__(self, key, data):
         self.key = key
@@ -8,10 +7,8 @@ class BSTNode:
         self.left: Optional["BSTNode"] = None
         self.right: Optional["BSTNode"] = None
 
-
 class BST:
-    """Plain (unbalanced) BST. Insert/search/delete/height are all iterative to
-    avoid recursion-depth failures on sorted-order input at N=10,000."""
+    """Plain (unbalanced) BST. Insert/search/delete/height are all iterative to avoid recursion-depth failures."""
     def __init__(self):
         self.root = None
 
@@ -51,8 +48,7 @@ class BST:
             node = node.left if key < node.key else node.right
         if node is None:
             return
-        # Two children: copy in-order successor into node, then delete the
-        # successor (which has at most one child) instead.
+        # Two children: copy in-order successor into node, then delete the successor instead.
         if node.left is not None and node.right is not None:
             succ_parent = node
             succ = node.right

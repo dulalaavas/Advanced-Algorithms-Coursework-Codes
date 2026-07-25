@@ -4,10 +4,8 @@ class _Entry:
         self.key = key
         self.data = data
 
-
 class HashTable:
-    """Separate-chaining hash table with prime capacity. Doubles to the next
-    prime when load factor exceeds 0.7 to keep operations O(1) average."""
+    """Separate-chaining hash table with prime capacity, doubling when load factor exceeds 0.7."""
     _INITIAL_CAPACITY = 11
     _LOAD_FACTOR_THRESHOLD = 0.7
 

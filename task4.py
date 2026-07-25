@@ -1,14 +1,7 @@
-"""
-Task 4 - NP-Hard Problem: Vehicle Routing Problem with Time Windows (VRPTW)
-
-Four heuristics (greedy construction, local search, GRASP, simulated annealing)
-plus an independent feasibility verifier. Every reported solution is verified
-before its objective value is used.
-"""
+"""Task 4 - NP-Hard Problem: VRPTW with four heuristics plus an independent feasibility verifier."""
 import math
 import random
 from dataclasses import dataclass
-
 
 @dataclass(frozen=True)
 class Customer:
@@ -20,11 +13,8 @@ class Customer:
     due: float        # latest service start
     service: float    # service duration
 
-
 class VRPTW:
-    """Customer 0 is the depot; travel time == Euclidean distance (unit speed).
-    A vehicle may arrive early and wait but may not start service after `due`.
-    Objective: minimise total travel distance under capacity and time windows."""
+    """Customer 0 is the depot; minimise total travel distance under capacity and time windows."""
     def __init__(self, customers, capacity):
         self.customers = customers
         self.capacity = capacity
@@ -66,8 +56,7 @@ class VRPTW:
         return sum(self.route_cost(r) for r in routes)
 
     def verify(self, routes):
-        """Independent check: each customer served once, all routes feasible.
-        Returns (ok, reason)."""
+        """Independent check: each customer served once, all routes feasible. Returns (ok, reason)."""
         served = [c for r in routes for c in r]
         if sorted(served) != list(range(1, self.n)):
             return False, f"customers served {len(served)}, expected {self.n - 1}, or duplicates"
@@ -76,11 +65,9 @@ class VRPTW:
                 return False, f"route {i} infeasible"
         return True, "ok"
 
-
 # --- Heuristic 1: Greedy construction (nearest feasible neighbour) ---
 def greedy_construct(inst, rng=None, rcl_size=1):
-    """Append the nearest feasible customer, one vehicle at a time. rcl_size > 1
-    picks uniformly from the rcl_size nearest candidates (the GRASP variant)."""
+    """Append the nearest feasible customer, one vehicle at a time; rcl_size > 1 is the GRASP variant."""
     unvisited = set(range(1, inst.n))
     routes = []
     while unvisited:
@@ -103,12 +90,9 @@ def greedy_construct(inst, rng=None, rcl_size=1):
         routes.append(route)
     return routes
 
-
 # --- Heuristic 2: Local search (2-opt intra-route + relocate inter-route) ---
 def local_search(inst, routes, max_passes=50):
-    """First-improvement over two neighbourhoods: 2-opt (reverse a segment in one
-    route) and relocate (move a customer elsewhere). Every move is feasibility-
-    checked, since time windows are not preserved by segment reversal."""
+    """First-improvement over two neighbourhoods: 2-opt (segment reversal) and relocate; every move is feasibility-checked."""
     routes = [list(r) for r in routes]
     for _ in range(max_passes):
         improved = False
@@ -150,12 +134,9 @@ def local_search(inst, routes, max_passes=50):
             break
     return routes
 
-
 # --- Heuristic 3: GRASP (Greedy Randomised Adaptive Search Procedure) ---
 def grasp(inst, iterations=20, rcl_size=3, seed=0, ls_passes=50):
-    """Randomised construction + local search, keeping the best over iterations.
-    ls_passes must match the standalone local search budget for a fair
-    comparison (randomised construction starts ~24% worse than greedy)."""
+    """Randomised construction + local search, keeping the best over iterations."""
     rng = random.Random(seed)
     best, best_cost = None, float('inf')
     for _ in range(iterations):
@@ -166,14 +147,10 @@ def grasp(inst, iterations=20, rcl_size=3, seed=0, ls_passes=50):
             best, best_cost = sol, c
     return best
 
-
 # --- Heuristic 4: Simulated Annealing ---
 def simulated_annealing(inst, routes, seed=0, iterations=8000,
                         t0=50.0, t_final=0.01, polish=True):
-    """Metropolis acceptance over relocate/swap moves. Cooling is derived from
-    the iteration budget, cooling = (t_final / t0) ** (1 / iterations), so the
-    temperature actually reaches t_final. Infeasible neighbours are rejected
-    (not penalised), keeping the incumbent always feasible."""
+    """Metropolis acceptance over relocate/swap moves; infeasible neighbours are rejected, not penalised."""
     rng = random.Random(seed)
     cur = [list(r) for r in routes]
     cur_cost = inst.solution_cost(cur)
@@ -226,12 +203,9 @@ def simulated_annealing(inst, routes, seed=0, iterations=8000,
         best = local_search(inst, best, max_passes=10)
     return best
 
-
 # --- Synthetic (Solomon-like) instance generator ---
 def make_instance(n_customers, seed=1, capacity=200, horizon=1000.0):
-    """Depot at the centre, customers uniformly scattered, time windows wide
-    enough that a feasible solution provably exists (each customer reachable
-    directly from the depot within its window)."""
+    """Depot at the centre, customers uniformly scattered, time windows wide enough that feasibility is guaranteed."""
     rng = random.Random(seed)
     depot = Customer(0, 50.0, 50.0, 0, 0.0, horizon, 0.0)
     customers = [depot]

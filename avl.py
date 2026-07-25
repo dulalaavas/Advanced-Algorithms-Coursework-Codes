@@ -6,10 +6,8 @@ class AVLNode:
         self.right = None
         self.height = 1
 
-
 class AVLTree:
-    """Self-balancing AVL tree. Same API as BST so the benchmark treats both
-    uniformly. Rotation is chosen by balance factor. Assumes unique keys."""
+    """Self-balancing AVL tree. Same API as BST so the benchmark treats both uniformly."""
     def __init__(self):
         self.root = None
 

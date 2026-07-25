@@ -1,9 +1,7 @@
 import math
 
-
 class City:
-    """City record. `distance` is Euclidean distance from ORIGIN, used as the
-    Min-Heap priority for the "next nearest city" use case."""
+    """City record. `distance` is Euclidean distance from ORIGIN, used as the Min-Heap priority."""
     ORIGIN = (0.0, 0.0)
 
     def __init__(self, city_id, name, latitude, longitude, population):

@@ -10,12 +10,10 @@ from hashtable import HashTable
 from minheap import MinHeap
 from city import City
 
-
 def make_cities(n, seed):
     rng = random.Random(seed)
     return [City(i, f"City_{i}", rng.uniform(-90, 90), rng.uniform(-180, 180),
                  rng.randint(1000, 5_000_000)) for i in range(n)]
-
 
 def time_keyed_structure(factory, cities, insert_order, search_keys, delete_order):
     struct = factory()
@@ -35,7 +33,6 @@ def time_keyed_structure(factory, cities, insert_order, search_keys, delete_orde
     t_delete = time.perf_counter() - t0
     return t_insert, t_search, t_delete
 
-
 def time_heap(cities, insert_order):
     heap = MinHeap()
     t0 = time.perf_counter()
@@ -49,7 +46,6 @@ def time_heap(cities, insert_order):
         heap.pop()
     t_pop = time.perf_counter() - t0
     return t_push, t_pop
-
 
 def run_trials(n, trials, seed_base):
     results = {
@@ -80,7 +76,6 @@ def run_trials(n, trials, seed_base):
         results['Heap']['pop'].append(tpop)
     return results
 
-
 def summarize(results):
     summary = {}
     for struct_name, ops in results.items():
@@ -93,7 +88,6 @@ def summarize(results):
                 'max': max(times),
             }
     return summary
-
 
 def main():
     ns = [100, 1000, 10000]
@@ -121,7 +115,6 @@ def main():
                 print(f"  {struct_name:6s} {op_name:8s} "
                       f"mean={stats['mean']:.6f}s stdev={stats['stdev']:.6f}s")
     return all_summaries
-
 
 if __name__ == '__main__':
     main()

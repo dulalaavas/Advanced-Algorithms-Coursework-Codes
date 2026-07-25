@@ -1,21 +1,9 @@
-"""
-Task 3 - Algorithmic Strategies
-DP:           Weighted Job Scheduling with time windows
-Greedy:       Minimum Number of Platforms
-Backtracking: Knight's Tour with Warnsdorff pruning
-
-Each paradigm is paired with an exact/unpruned reference so the report's claims
-are measured rather than asserted.
-"""
+"""Task 3 - Algorithmic Strategies: DP (job scheduling), Greedy (platforms), Backtracking (Knight's Tour)."""
 from bisect import bisect_right
 from itertools import combinations
 import sys
 
-
-# --- 1. Dynamic Programming: Weighted Job Scheduling ---
-# Job = (start, end, profit); choose a non-overlapping subset maximising profit.
-# OPT(i) = max(OPT(i-1), profit_i + OPT(p(i))) over jobs sorted by end time,
-# where p(i) is the rightmost job j < i with end_j <= start_i.
+# --- 1. Dynamic Programming: Weighted Job Scheduling --- OPT(i) = max(OPT(i-1), profit_i + OPT(p(i))).
 
 def weighted_job_scheduling(jobs):
     """Bottom-up DP. O(N log N) time, O(N) space. Returns (max_profit, chosen)."""
@@ -45,10 +33,8 @@ def weighted_job_scheduling(jobs):
             i -= 1
     return dp[n], list(reversed(chosen))
 
-
 def weighted_job_scheduling_memo(jobs):
-    """Top-down memoised variant. Same recurrence; the O(N) recursion stack is
-    the practical difference from the bottom-up version."""
+    """Top-down memoised variant; the O(N) recursion stack is the practical difference from bottom-up."""
     if not jobs:
         return 0
     jobs = sorted(jobs, key=lambda j: j[1])
@@ -67,11 +53,9 @@ def weighted_job_scheduling_memo(jobs):
 
     old = sys.getrecursionlimit()
     sys.setrecursionlimit(max(old, len(jobs) + 100))
-    try:
-        return opt(len(jobs))
-    finally:
-        sys.setrecursionlimit(old)
-
+    result = opt(len(jobs))
+    sys.setrecursionlimit(old)
+    return result
 
 def weighted_job_scheduling_bruteforce(jobs):
     """Exact reference: try every subset. O(2^N * N). Small N only."""
@@ -83,10 +67,7 @@ def weighted_job_scheduling_bruteforce(jobs):
                 best = max(best, sum(j[2] for j in combo))
     return best
 
-
-# --- 2. Greedy: Minimum Number of Platforms ---
-# Sweep sorted arrivals/departures: +1 platform per arrival, -1 per departure,
-# track the running max. Convention: arr <= dep counts as overlap.
+# --- 2. Greedy: Minimum Number of Platforms --- sweep sorted arrivals/departures, tracking the running max.
 
 def min_platforms_greedy(arrivals, departures):
     """O(N log N) time, O(N) space. Does not mutate inputs."""
@@ -107,10 +88,8 @@ def min_platforms_greedy(arrivals, departures):
             j += 1
     return best
 
-
 def min_platforms_exact(arrivals, departures):
-    """Exact reference: max trains simultaneously present, checked at every
-    arrival instant (where the max must occur). O(N^2)."""
+    """Exact reference: max trains simultaneously present, checked at every arrival instant. O(N^2)."""
     if not arrivals:
         return 0
     best = 0
@@ -119,19 +98,14 @@ def min_platforms_exact(arrivals, departures):
         best = max(best, count)
     return best
 
-
 # --- 3. Backtracking: Knight's Tour ---
 MOVES = [(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)]
-
 
 def _valid(x, y, n, board):
     return 0 <= x < n and 0 <= y < n and board[x][y] == -1
 
-
 def knights_tour(n, start=(0, 0), warnsdorff=False, node_cap=5_000_000):
-    """Backtracking Knight's Tour. warnsdorff=True orders candidate moves by
-    fewest onward moves first. Returns (board_or_None, nodes_explored, hit_cap),
-    where nodes_explored is the number of square placements attempted."""
+    """Backtracking Knight's Tour. warnsdorff=True orders candidate moves by fewest onward moves first."""
     board = [[-1] * n for _ in range(n)]
     sx, sy = start
     board[sx][sy] = 0
@@ -160,16 +134,12 @@ def knights_tour(n, start=(0, 0), warnsdorff=False, node_cap=5_000_000):
 
     old = sys.getrecursionlimit()
     sys.setrecursionlimit(max(old, n * n + 100))
-    try:
-        found = solve(sx, sy, 1)
-    finally:
-        sys.setrecursionlimit(old)
+    found = solve(sx, sy, 1)
+    sys.setrecursionlimit(old)
     return (board if found else None), stats['nodes'], stats['cap']
 
-
 def verify_tour(board, n):
-    """Independent check: every square visited once, consecutive steps a legal
-    knight move."""
+    """Independent check: every square visited once, consecutive steps a legal knight move."""
     if sorted(v for row in board for v in row) != list(range(n * n)):
         return False
     pos = {}

@@ -1,8 +1,5 @@
 class MinHeap:
-    """Array-backed binary min-heap priority queue. Entries are stored as
-    (priority, counter, item); the counter is a tie-breaker so equal-priority
-    items never fall through to comparing `item` directly. Arbitrary-key delete
-    is O(N) (linear scan); only pop (extract-min) is O(log N)."""
+    """Array-backed binary min-heap; entries are (priority, counter, item) with counter as tie-breaker."""
     def __init__(self):
         self.heap = []
         self._counter = 0
