@@ -1,9 +1,12 @@
+from typing import Optional
+
+
 class BSTNode:
     def __init__(self, key, data):
         self.key = key
         self.data = data
-        self.left = None
-        self.right = None
+        self.left: Optional["BSTNode"] = None
+        self.right: Optional["BSTNode"] = None
 
 
 class BST:
