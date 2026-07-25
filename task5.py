@@ -63,20 +63,30 @@ def sequential_sort(data):
 
 # --- threaded ---
 # Shared state guarded by a mutex: `value += n` is a non-atomic read-modify-write
-# (LOAD_FAST / ADD / STORE_FAST), so a thread switch between those bytecodes can
-# lose an update.
+# (LOAD_FAST / ADD / STORE_FAST). In practice CPython's GIL rarely switches threads
+# inside such a short bytecode run, so the bare `+=` alone loses almost nothing.
+# `yield_point=True` forces the switch explicitly (read, yield, write), which is
+# what actually manifests the race: every thread reads the same stale value before
+# any of them writes it back, so only one of `num_threads` increments survives per
+# round (~(num_threads-1)/num_threads updates lost).
 class Counter:
     def __init__(self, use_lock=True):
         self.value = 0
         self.use_lock = use_lock
         self.lock = threading.Lock()
 
-    def add(self, n):
+    def add(self, n, yield_point=False):
         if self.use_lock:
             with self.lock:
-                self.value += n
+                self._read_modify_write(n, yield_point)
         else:
-            self.value += n
+            self._read_modify_write(n, yield_point)
+
+    def _read_modify_write(self, n, yield_point):
+        value = self.value
+        if yield_point:
+            time.sleep(0)
+        self.value = value + n
 
 
 def threaded_sort(data, num_threads, counter=None):
@@ -111,15 +121,17 @@ def process_sort(data, num_procs):
 
 
 # --- race condition demonstration ---
-def demonstrate_race(num_threads=8, increments=50_000, use_lock=False):
-    """Each thread does `increments` unguarded +1 operations. Any shortfall from
+def demonstrate_race(num_threads=8, increments=50_000, use_lock=False, yield_point=False):
+    """Each thread does `increments` +1 operations. Any shortfall from
     num_threads * increments is a lost update from a thread switch between the
-    LOAD and the STORE."""
+    read and the write. yield_point=True forces that switch on every increment
+    (see Counter), which is what reliably produces the ~87.5% loss at
+    num_threads=8 reported in Table 9; without it, losses are rare on CPython."""
     counter = Counter(use_lock=use_lock)
 
     def worker():
         for _ in range(increments):
-            counter.add(1)
+            counter.add(1, yield_point=yield_point)
 
     threads = [threading.Thread(target=worker) for _ in range(num_threads)]
     t0 = time.perf_counter()
