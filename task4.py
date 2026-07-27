@@ -194,7 +194,7 @@ def simulated_annealing(inst, routes, seed=0, iterations=8000,
             if c < best_cost:
                 best, best_cost = [list(r) for r in cand], c
         T *= cooling
-    simulated_annealing.last_stats = {
+    simulated_annealing.last_stats = {  # type: ignore[attr-defined]
         'accepted': accepted,
         'rejected_infeasible': rejected_infeasible,
         'final_T': T,
@@ -205,7 +205,6 @@ def simulated_annealing(inst, routes, seed=0, iterations=8000,
 
 # --- Synthetic (Solomon-like) instance generator ---
 def make_instance(n_customers, seed=1, capacity=200, horizon=1000.0):
-    """Depot at the centre, customers uniformly scattered, time windows wide enough that feasibility is guaranteed."""
     rng = random.Random(seed)
     depot = Customer(0, 50.0, 50.0, 0, 0.0, horizon, 0.0)
     customers = [depot]
